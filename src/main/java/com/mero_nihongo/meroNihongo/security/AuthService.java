@@ -38,7 +38,12 @@ public class AuthService {
 
     public String authenticate(LoginRequest request) {
         User user = userRepository.findByUsername(request.getUsername());
-        if (user == null || !passwordEncoder.matches(request.getPassword(), user.getPassword())) {
+        if(user == null) throw new RuntimeException("Invalid Credentials");
+
+        //mail
+        if(!user.getEmail().equalsIgnoreCase(request.getEmail())) throw  new RuntimeException("Wrong Email Address!!");
+
+        if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
             throw new RuntimeException("Invalid credentials");
         }
         return jwtUtil.generateToken(user.getUsername());

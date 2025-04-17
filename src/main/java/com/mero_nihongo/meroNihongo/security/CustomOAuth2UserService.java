@@ -24,7 +24,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
         String email = oAuth2User.getAttribute("email");
         if (email != null) {
-            User existingUser = userRepository.findByEmail(email);
+            User existingUser = userRepository.findByEmail(email).orElse(null);
             if (existingUser == null) {
                 String randomPassword = UUID.randomUUID().toString();
                 User newUser = new User();

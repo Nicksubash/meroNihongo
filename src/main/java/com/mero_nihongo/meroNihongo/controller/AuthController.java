@@ -1,9 +1,12 @@
 package com.mero_nihongo.meroNihongo.controller;
 
+import com.mero_nihongo.meroNihongo.dto.ForgotPasswordRequest;
 import com.mero_nihongo.meroNihongo.dto.LoginRequest;
+import com.mero_nihongo.meroNihongo.dto.PasswordResetRequest;
 import com.mero_nihongo.meroNihongo.dto.RegisterRequest;
 import com.mero_nihongo.meroNihongo.model.User;
 import com.mero_nihongo.meroNihongo.security.AuthService;
+import com.mero_nihongo.meroNihongo.service.EmailService;
 import com.mero_nihongo.meroNihongo.service.LoginResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -18,9 +21,11 @@ import org.springframework.web.servlet.view.RedirectView;
 public class AuthController {
 
     private final AuthService authService;
+    private final EmailService emailService;
 
-    public AuthController(AuthService authService) {
+    public AuthController(AuthService authService, EmailService emailService) {
         this.authService = authService;
+        this.emailService = emailService;
     }
 
     @PostMapping("/login")
@@ -69,5 +74,19 @@ public class AuthController {
         }
 
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+    }
+
+    //password Reseting
+    @PostMapping("/forgot-password")
+    public ResponseEntity<?> forgotPassword(@RequestBody ForgotPasswordRequest forgotPasswordRequest){
+        emailService.sendResetCode(forgotPasswordRequest.getEmail());
+        return ResponseEntity.ok("Reset code sent to your email.");
+    }
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<?> resetPassword(@RequestBody PasswordResetRequest request){
+      boolean success=  emailService.resetPassword(request.getEmail(), request.getCode(), request.getNewPassword());
+        return  success ? ResponseEntity.ok("Password Reset Successfully"):
+                ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid Code or email");
     }
 }

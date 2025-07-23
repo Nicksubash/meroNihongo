@@ -37,19 +37,23 @@ public class AuthService {
     }
 
     public String authenticate(LoginRequest request) {
-        User user = userRepository.findByUsername(request.getUsername());
-        if (user == null || !passwordEncoder.matches(request.getPassword(), user.getPassword())) {
+        User user = userRepository.findByUsername(request.getUsername())
+                .orElseThrow(() -> new RuntimeException("Invalid credentials"));
+        if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
             throw new RuntimeException("Invalid credentials");
         }
         return jwtUtil.generateToken(user.getUsername());
     }
 
     public User getCurrentUser(String username) {
-        User user = userRepository.findByUsername(username);
-        if (user == null) {
-            throw new RuntimeException("User not found");
-        }
-        return user;
+        return userRepository.findByUsername(username)
+                .orElseGet(() -> userRepository.findByEmail(username)
+                        .orElseThrow(() -> new RuntimeException("User not found")));
+    }
+
+    public User getCurrentUserByEmail(String email) {
+        return userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
     }
 
 }

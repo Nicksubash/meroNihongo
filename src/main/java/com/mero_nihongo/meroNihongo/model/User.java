@@ -7,6 +7,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 
 @Entity
 @Table(name = "users")
@@ -27,6 +28,9 @@ public class User implements UserDetails {
 
     @Enumerated(EnumType.STRING)
     private Role role = Role.USER;
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<UserCourse> userCourses;
 
     public User() {}
 
@@ -77,6 +81,14 @@ public class User implements UserDetails {
 
     public void setRole(Role role) {
         this.role = role;
+    }
+
+    public List<UserCourse> getUserCourses() {
+        return userCourses;
+    }
+
+    public void setUserCourses(List<UserCourse> userCourses) {
+        this.userCourses = userCourses;
     }
 
     // UserDetails implementation

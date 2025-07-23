@@ -2,8 +2,8 @@ package com.mero_nihongo.meroNihongo.config;
 
 import com.mero_nihongo.meroNihongo.filter.JwtAuthFilter;
 import com.mero_nihongo.meroNihongo.security.CustomOAuth2UserService;
-import com.mero_nihongo.meroNihongo.security.JwtService;
 import com.mero_nihongo.meroNihongo.security.OAuth2AuthenticationSuccessHandler;
+import com.mero_nihongo.meroNihongo.util.JwtUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -32,13 +32,13 @@ import static org.springframework.security.config.Customizer.withDefaults;
 public class SecurityConfig {
 
     private final CustomOAuth2UserService customOAuth2UserService;
-    private final JwtService jwtService;
+    private final JwtUtil jwtUtil;
     private final JwtAuthFilter jwtAuthFilter;
 
     @Autowired
-    public SecurityConfig(@Lazy CustomOAuth2UserService customOAuth2UserService, JwtService jwtService, JwtAuthFilter jwtAuthFilter) {
+    public SecurityConfig(@Lazy CustomOAuth2UserService customOAuth2UserService, JwtUtil jwtUtil, JwtAuthFilter jwtAuthFilter) {
         this.customOAuth2UserService = customOAuth2UserService;
-        this.jwtService = jwtService;
+        this.jwtUtil = jwtUtil;
         this.jwtAuthFilter = jwtAuthFilter;
     }
 
@@ -67,7 +67,7 @@ public class SecurityConfig {
     }
     @Bean
     public AuthenticationSuccessHandler oAuth2AuthenticationSuccessHandler() {
-        return new OAuth2AuthenticationSuccessHandler(jwtService);
+        return new OAuth2AuthenticationSuccessHandler(jwtUtil);
     }
 
     @Bean

@@ -5,6 +5,8 @@ import com.mero_nihongo.meroNihongo.dto.RegisterRequest;
 import com.mero_nihongo.meroNihongo.model.User;
 import com.mero_nihongo.meroNihongo.security.AuthService;
 import com.mero_nihongo.meroNihongo.service.LoginResponse;
+import com.mero_nihongo.meroNihongo.util.JwtUtil;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -18,9 +20,11 @@ import org.springframework.web.servlet.view.RedirectView;
 public class AuthController {
 
     private final AuthService authService;
+    private final JwtUtil jwtUtil;
 
-    public AuthController(AuthService authService) {
+    public AuthController(AuthService authService, JwtUtil jwtUtil) {
         this.authService = authService;
+        this.jwtUtil = jwtUtil;
     }
 
     @PostMapping("/login")
@@ -42,9 +46,22 @@ public class AuthController {
     }
 
     @GetMapping("/current-user")
-    public ResponseEntity<User> getCurrentUser() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    public ResponseEntity<User> getCurrentUser(HttpServletRequest request) {
+        // First try to get from JWT token
+        String authHeader = request.getHeader("Authorization");
+        if (authHeader != null && authHeader.startsWith("Bearer ")) {
+            try {
+                String jwt = authHeader.substring(7);
+                String username = jwtUtil.extractUsername(jwt);
+                User user = authService.getCurrentUser(username);
+                return ResponseEntity.ok(user);
+            } catch (Exception e) {
+                System.err.println("JWT extraction failed: " + e.getMessage());
+            }
+        }
 
+        // Fallback to Spring Security context (for OAuth2)
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication != null && authentication.isAuthenticated()) {
             Object principal = authentication.getPrincipal();
             String username = null;
@@ -63,8 +80,6 @@ public class AuthController {
             if (username != null) {
                 User user = authService.getCurrentUser(username);
                 return ResponseEntity.ok(user);
-            } else {
-                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
             }
         }
 

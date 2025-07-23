@@ -1,5 +1,6 @@
 package com.mero_nihongo.meroNihongo.security;
 
+import com.mero_nihongo.meroNihongo.util.JwtUtil;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.security.core.Authentication;
@@ -12,10 +13,10 @@ import java.io.IOException;
 @Component
 public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
 
-    private final JwtService jwtService;
+    private final JwtUtil jwtUtil;
 
-    public OAuth2AuthenticationSuccessHandler(JwtService jwtService) {
-        this.jwtService = jwtService;
+    public OAuth2AuthenticationSuccessHandler(JwtUtil jwtUtil) {
+        this.jwtUtil = jwtUtil;
     }
 
     @Override
@@ -31,7 +32,7 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
         }
 
         // Generate token
-        String token = jwtService.generateToken(email);
+        String token = jwtUtil.generateToken(email);
 
         // Redirect with token
         String redirectUrl = "http://localhost:5173/oauth-callback?token=" + token;
